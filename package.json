@@ -1,0 +1,22 @@
+{
+  "name": "Foosbeer-Server",
+  "version": "0.0.0",
+  "description": "API Server used by the Foosbeer community website.",
+  "main": "src",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chrisinajar/Foosbeer-Server"
+  },
+  "author": "Chris Vickery <chrisinajar@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chrisinajar/Foosbeer-Server/issues"
+  },
+  "homepage": "https://github.com/chrisinajar/Foosbeer-Server",
+  "dependencies": {
+    "maki": "^0.4.5"
+  }
+}
