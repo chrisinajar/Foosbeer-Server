@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/chrisinajar/Foosbeer-Server",
   "dependencies": {
-    "maki": "^0.4.5"
+    "maki": "^0.4.5",
+    "pmx": "^0.3.7"
   }
 }
