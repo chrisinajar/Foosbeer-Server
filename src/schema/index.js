@@ -8,6 +8,6 @@ fs.readdir(__dirname, function(err, files) {
 			return;
 		}
 		var data = require('./' + file);
-		app.define(data.name, data);
+		// app.define(data.name, data);
 	});
 });
