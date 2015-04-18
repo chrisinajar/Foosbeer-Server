@@ -56,31 +56,34 @@ module.exports = {
 
 		var checkOAuthCallback = function(connection, actionTemplate, next) {
 			var path = url.parse(connection.rawConnection.req.url).pathname,
+				parts = path.split('/'),
 				type;
 
-			if (path.substr(0, 10) !== "/api/auth/") {
+			if (parts.length < 3 && parts[0] !== "api" || parts[1] !== "auth") {
 				return next(connection, true);
 			}
 
 			_.extend(connection.rawConnection.req, {body:connection.params});
-			type = path.substr(10);
+			type = parts[2];
 
-			api.log("Received OAuth callback: " + type);
+			api.log("Received OAuth callback: " + type + " " + parts[3]);
 
-			passport.authenticate(type, {
-				failureRedirect: '/login'
-			})(connection.rawConnection.req, connection.rawConnection.res, function() {
-				api.log("Finished authorizing user!");
+			if (parts[3] === 'callback') {
+				passport.authenticate(type, {
+					failureRedirect: '/login'
+				})(connection.rawConnection.req, connection.rawConnection.res, function() {
+					api.log("Finished authorizing user!");
+					next(connection, true);
+				});
+			} else {
 				next(connection, true);
-			});
+			}
 		};
 
 		var authenticationMiddleware = function(connection, actionTemplate, next){
 
 			if(actionTemplate.authenticated === true){
 				_.extend(connection.rawConnection.req, {body:connection.params});
-
-
 
 				return passport.authorize('github', {
 						session: true,
@@ -116,7 +119,7 @@ module.exports = {
 		passport.use('github', new GitHubStrategy({
 				clientID: GITHUB_CLIENT_ID,
 				clientSecret: GITHUB_CLIENT_SECRET,
-				callbackURL: "http://foos.beer/api/status"
+				callbackURL: "http://foos.beer/api/auth/github/callback"
 			},
 			function(accessToken, refreshToken, profile, done) {
 				// asynchronous verification, for effect...
