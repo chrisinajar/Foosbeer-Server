@@ -81,8 +81,10 @@ module.exports = {
 					next(connection, true);
 				});
 			} else {
-				api.log("Part 3 was " + parts[3]);
-				next(connection, true);
+				passport.authenticate('github')
+					(connection.rawConnection.req, connection.rawConnection.res, function() {
+						next(connection, true);
+					});
 			}
 		};
 
@@ -91,7 +93,7 @@ module.exports = {
 			if(actionTemplate.authenticated === true){
 				_.extend(connection.rawConnection.req, {body:connection.params});
 
-				return passport.authorize('github', {
+				return passport.authenticate('github', {
 						session: true,
 						scope: ['user:email']
 					}, function (err, user, info, extra) {
