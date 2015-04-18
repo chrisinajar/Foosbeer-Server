@@ -67,9 +67,10 @@ module.exports = {
 
 			api.log("Received OAuth callback: " + type);
 
-			passport.authenticate(type, {
+			passport.authorize(type, {
 				failureRedirect: '/login'
 			})(connection.rawConnection.req, connection.rawConnection.res, function() {
+				api.log("Finished authorizing user!");
 				next(connection, true);
 			});
 		};
