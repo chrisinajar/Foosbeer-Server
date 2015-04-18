@@ -5,6 +5,9 @@ exports.default = {
 			get: [{
 				path: '/auth/github',
 				action: 'auth_github'
+			}, {
+				path: '/auth/github/callback',
+				action: 'auth_github'
 			}]
 			/* ---------------------
 			routes.js 
