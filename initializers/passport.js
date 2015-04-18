@@ -50,29 +50,40 @@ module.exports = {
 				});
 			});
 		};
-		
-		// Determine if Authentication is required,
-		// Attempt login if credentials are supplied
-		var doPassportAuthenticate = function (connection, actionTemplate, next) {
-			// Do not try to authenticate if already logged in
-			if (connection.rawConnection.req.isAuthenticated()) {
-				// api.log('already authenticated, nothing for passport to do');
-				return next(connection, true);
+
+
+		var authenticationMiddleware = function(connection, actionTemplate, next){
+			if(actionTemplate.authenticated === true){
+				_.extend(connection.rawConnection.req, {body:connection.params});
+
+
+
+				return passport.authenticate('github', {session: true},
+					function (err, user, info, extra) {
+						if (err) {
+							connection.error = err;
+							return next(connection, false);
+						}
+						if (!user) {
+							// api.log('Not Authenticated');
+							// Unauthorized
+							connection.rawConnection.responseHttpCode = 401;
+							return next(connection, false);
+						}
+						// api.log('user: '+JSON.stringify(user))
+						user.connection_id = connection.id;
+						connection.rawConnection.req.logIn(user, function () {
+							next(connection, true);
+						});
+					})(connection.rawConnection.req, connection.rawConnection.res);
+				
+			}else{
+				next(connection, true);
 			}
-			// Requires login
-			if (!!actionTemplate.authenticated) {
-				// api.log("not yet authenticated, authorization required");
-				// passport expects the credentials in a 'body' key inside of
-				// the request object, we're fudging them in here
-				return doBasicAuth(util._extend({body:connection.params},connection.rawConnection.req), connection.rawConnection.res, connection, next);
-			}
-			// api.log('authentication not necessary');
-			next(connection, true);
 		};
 	 
 		api.actions.addPreProcessor(setupSession);
 		api.actions.addPreProcessor(usePassportMiddleware);
-		api.actions.addPreProcessor(doPassportAuthenticate);
 	 
 	 
 		passport.use(new GitHubStrategy({
