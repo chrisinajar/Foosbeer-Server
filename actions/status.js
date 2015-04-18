@@ -2,6 +2,8 @@ exports.status = {
   name: 'status',
   description: 'I will return some basic information about the API',
    
+  authenticated: true,
+  
   outputExample:{  
     "id":"192.168.2.11",
     "actionheroVersion":"9.4.1",

@@ -1,4 +1,5 @@
 var app = require('../src/app');
+var _ = require('underscore');
 var passport = require('passport');
 var GitHubStrategy = require('passport-github').Strategy;
 
@@ -53,6 +54,7 @@ module.exports = {
 
 
 		var authenticationMiddleware = function(connection, actionTemplate, next){
+
 			if(actionTemplate.authenticated === true){
 				_.extend(connection.rawConnection.req, {body:connection.params});
 
@@ -84,6 +86,7 @@ module.exports = {
 	 
 		api.actions.addPreProcessor(setupSession);
 		api.actions.addPreProcessor(usePassportMiddleware);
+		api.actions.addPreProcessor(authenticationMiddleware);
 	 
 	 
 		passport.use(new GitHubStrategy({

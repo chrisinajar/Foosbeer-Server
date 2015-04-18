@@ -13,7 +13,7 @@ exports.auth_github = {
 	},
 	run: function(api, connection, next) {
 		// api.log(connection);
-		passport.authenticate('github', {
+		passport.authorize('github', {
 			failureRedirect: '/login'
 		})(connection.rawConnection.req, connection.rawConnection.res, function(err) {
 			if (err instanceof Error) {
