@@ -2,7 +2,7 @@ var app = require('../src/app');
 var _ = require('underscore');
 var url = require('url');
 var passport = require('passport');
-var GitHubStrategy = require('passport-github').Strategy;
+var GitHubStrategy = require('passport-github2').Strategy;
 
 var GITHUB_CLIENT_ID = app.config.github.client_id;
 var GITHUB_CLIENT_SECRET = app.config.github.client_secret;
@@ -67,7 +67,7 @@ module.exports = {
 
 			api.log("Received OAuth callback: " + type);
 
-			passport.authorize(type, {
+			passport.authenticate(type, {
 				failureRedirect: '/login'
 			})(connection.rawConnection.req, connection.rawConnection.res, function() {
 				next(connection, true);
@@ -81,8 +81,10 @@ module.exports = {
 
 
 
-				return passport.authenticate('github', {session: true},
-					function (err, user, info, extra) {
+				return passport.authenticate('github', {
+						session: true,
+						scope: ['user:email']
+					}, function (err, user, info, extra) {
 						if (err) {
 							connection.error = err;
 							return next(connection, false);
