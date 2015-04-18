@@ -67,7 +67,7 @@ module.exports = {
 
 			api.log("Received OAuth callback: " + type);
 
-			passport.authorize(type, {
+			passport.authenticate(type, {
 				failureRedirect: '/login'
 			})(connection.rawConnection.req, connection.rawConnection.res, function() {
 				api.log("Finished authorizing user!");
@@ -82,7 +82,7 @@ module.exports = {
 
 
 
-				return passport.authenticate('github', {
+				return passport.authorize('github', {
 						session: true,
 						scope: ['user:email']
 					}, function (err, user, info, extra) {
@@ -107,14 +107,13 @@ module.exports = {
 				next(connection, true);
 			}
 		};
-	 
+	
 		api.actions.addPreProcessor(setupSession);
 		api.actions.addPreProcessor(usePassportMiddleware);
 		api.actions.addPreProcessor(authenticationMiddleware);
 		api.actions.addPreProcessor(checkOAuthCallback);
-	 
-	 
-		passport.use(new GitHubStrategy({
+	
+		passport.use('github', new GitHubStrategy({
 				clientID: GITHUB_CLIENT_ID,
 				clientSecret: GITHUB_CLIENT_SECRET,
 				callbackURL: "http://foos.beer/api/status"
@@ -132,7 +131,7 @@ module.exports = {
 				});
 			}
 		));
-	 
+	
 		passport.serializeUser(function (user, done) {
 			// api.log("passport.serializeUser: "+JSON.stringify(user));
 			// Faking a connection object as the first argument for
