@@ -117,7 +117,7 @@ module.exports = {
 		passport.use(new GitHubStrategy({
 				clientID: GITHUB_CLIENT_ID,
 				clientSecret: GITHUB_CLIENT_SECRET,
-				callbackURL: "http://foos.beer/api/auth/github"
+				callbackURL: "http://foos.beer/api/status"
 			},
 			function(accessToken, refreshToken, profile, done) {
 				// asynchronous verification, for effect...
