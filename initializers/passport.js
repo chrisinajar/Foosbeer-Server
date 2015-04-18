@@ -77,6 +77,7 @@ module.exports = {
 					next(connection, true);
 				});
 			} else {
+				api.log("Part 3 was " + parts[3]);
 				next(connection, true);
 			}
 		};
