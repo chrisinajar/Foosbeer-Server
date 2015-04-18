@@ -1,5 +1,6 @@
 var app = require('../src/app');
 var _ = require('underscore');
+var url = require('url');
 var passport = require('passport');
 var GitHubStrategy = require('passport-github').Strategy;
 
@@ -53,6 +54,26 @@ module.exports = {
 		};
 
 
+		var checkOAuthCallback = function(connection, actionTemplate, next) {
+			var path = url.parse(connection.rawConnection.req.url).pathname,
+				type;
+
+			if (path.substr(0, 10) !== "/api/auth/") {
+				return next(connection, true);
+			}
+
+			_.extend(connection.rawConnection.req, {body:connection.params});
+			type = path.substr(10);
+
+			api.log("Received OAuth callback: " + type);
+
+			passport.authorize(type, {
+				failureRedirect: '/login'
+			})(connection.rawConnection.req, connection.rawConnection.res, function() {
+				next(connection, true);
+			});
+		};
+
 		var authenticationMiddleware = function(connection, actionTemplate, next){
 
 			if(actionTemplate.authenticated === true){
@@ -87,6 +108,7 @@ module.exports = {
 		api.actions.addPreProcessor(setupSession);
 		api.actions.addPreProcessor(usePassportMiddleware);
 		api.actions.addPreProcessor(authenticationMiddleware);
+		api.actions.addPreProcessor(checkOAuthCallback);
 	 
 	 
 		passport.use(new GitHubStrategy({
