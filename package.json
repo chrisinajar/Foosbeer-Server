@@ -18,6 +18,10 @@
   "homepage": "https://github.com/chrisinajar/Foosbeer-Server",
   "dependencies": {
     "actionhero": "^10.1.1",
-    "pmx": "^0.3.7"
+    "mongoose": "^4.0.1",
+    "passport": "^0.2.1",
+    "passport-github": "^0.1.5",
+    "pmx": "^0.3.7",
+    "underscore": "^1.8.3"
   }
 }

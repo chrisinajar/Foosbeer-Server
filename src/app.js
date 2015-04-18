@@ -4,4 +4,7 @@ var actionhero = require("actionhero").actionheroPrototype;
 
 var app = new actionhero();
 
+app.Models = {};
+app.config = require('../config');
+
 module.exports = app;

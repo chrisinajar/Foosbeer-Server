@@ -1,4 +1,6 @@
-module.exports = {
+var app = require('../app');
+
+module.exports = app.define({
 	name: 'Player',
 
 	attributes: {
@@ -18,4 +20,4 @@ module.exports = {
 	},
 	methods: {
 	}
-};
+});
