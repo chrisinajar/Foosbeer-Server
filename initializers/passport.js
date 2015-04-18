@@ -59,6 +59,10 @@ module.exports = {
 				parts = path.split('/'),
 				type;
 
+			if (parts[0] === "") {
+				parts.shift();
+			}
+
 			if (parts.length < 3 && parts[0] !== "api" || parts[1] !== "auth") {
 				api.log(parts.length + " " + parts[0] + " " + parts[1]);
 				return next(connection, true);
