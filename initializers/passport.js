@@ -162,6 +162,9 @@ module.exports = {
 			// the connection id so it's safe to leave sparse
 			api.session.load({id:connection_id}, function (err, user) {
 				api.log("deserialized User: "+JSON.stringify(user));
+				if (err) {
+					api.log("ERROR: "+err);
+				}
 				done(null, user);
 			});
 		});
