@@ -147,26 +147,31 @@ module.exports = {
 	
 		passport.serializeUser(function (user, done) {
 			api.log("passport.serializeUser: "+JSON.stringify(user));
+			done(null, user);
+			return;
 			// Faking a connection object as the first argument for
 			// the session's save method. In this case it only needs
 			// the connection id so it's safe to leave sparse
-			api.session.save({id:user.connection_id}, user, function (err) {
-				done(err, user.connection_id);
-			});
+			// api.session.save({id:user.connection_id}, user, function (err) {
+			// 	done(err, user.connection_id);
+			// });
 		});
 	 
 		passport.deserializeUser(function (connection_id, done) {
 			api.log("passport.deserializeUser connection_id: "+JSON.stringify(connection_id));
+			done(null, user);
+			return;
+
 			// Faking a connection object as the first argument for
 			// the session's load method. In this case it only needs
 			// the connection id so it's safe to leave sparse
-			api.session.load({id:connection_id}, function (err, user) {
-				api.log("deserialized User: "+JSON.stringify(user));
-				if (err) {
-					api.log("ERROR: "+err);
-				}
-				done(null, user);
-			});
+			// api.session.load({id:connection_id}, function (err, user) {
+			// 	api.log("deserialized User: "+JSON.stringify(user));
+			// 	if (err) {
+			// 		api.log("ERROR: "+err);
+			// 	}
+			// 	done(null, user);
+			// });
 		});
 	 
 		api.passport = passport;
