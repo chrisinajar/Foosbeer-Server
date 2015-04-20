@@ -75,7 +75,8 @@ module.exports = {
 
 			if (parts[3] === 'callback') {
 				passport.authenticate(type, {
-					failureRedirect: '/login'
+					failureRedirect: '/login',
+					successRedirect: '/api/status'
 				})(connection.rawConnection.req, connection.rawConnection.res, function() {
 					api.log("Finished authorizing user!");
 					next(connection, true);
@@ -97,6 +98,7 @@ module.exports = {
 						session: true,
 						scope: ['user:email']
 					}, function (err, user, info, extra) {
+						api.log('Does this shit every run? user: '+JSON.stringify(user));
 						if (err) {
 							connection.error = err;
 							return next(connection, false);
@@ -144,7 +146,7 @@ module.exports = {
 		));
 	
 		passport.serializeUser(function (user, done) {
-			// api.log("passport.serializeUser: "+JSON.stringify(user));
+			api.log("passport.serializeUser: "+JSON.stringify(user));
 			// Faking a connection object as the first argument for
 			// the session's save method. In this case it only needs
 			// the connection id so it's safe to leave sparse
@@ -154,7 +156,7 @@ module.exports = {
 		});
 	 
 		passport.deserializeUser(function (connection_id, done) {
-			// api.log("passport.deserializeUser connection_id: "+JSON.stringify(connection_id));
+			api.log("passport.deserializeUser connection_id: "+JSON.stringify(connection_id));
 			// Faking a connection object as the first argument for
 			// the session's load method. In this case it only needs
 			// the connection id so it's safe to leave sparse
