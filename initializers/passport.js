@@ -161,7 +161,7 @@ module.exports = {
 			// the session's load method. In this case it only needs
 			// the connection id so it's safe to leave sparse
 			api.session.load({id:connection_id}, function (err, user) {
-				// api.log("deserialized User: "+JSON.stringify(user));
+				api.log("deserialized User: "+JSON.stringify(user));
 				done(null, user);
 			});
 		});
