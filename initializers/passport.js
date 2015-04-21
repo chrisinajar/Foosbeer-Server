@@ -96,6 +96,8 @@ module.exports = {
 				profile.authType = 'facebook';
 				profile.email = profile.emails[0].value;
 
+				api.log('This is my user: ' + JSON.stringify(profile));
+
 				findOrCreateUser(profile, function(err, user, created) {
 					if (created) {
 						api.log("Hey, I just created a user!", user);
