@@ -135,7 +135,7 @@ module.exports = {
 		app.connect.use(passport.session());
 
 		app.connect.use('/api/auth/facebook',
-			passport.authenticate('facebook', { scope: 'email' })
+			passport.authenticate('facebook', { scope: ['email'] })
 		);
 
 		app.connect.use('/api/auth/facebook/callback',
@@ -143,7 +143,7 @@ module.exports = {
 		);
 
 		app.connect.use('/api/auth/github',
-			passport.authenticate('github', { scope: 'user:email' })
+			passport.authenticate('github', { scope: ['user:email'] })
 		);
 
 		app.connect.use('/api/auth/github/callback',
