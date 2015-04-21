@@ -76,10 +76,9 @@ module.exports = {
 				profile.authType = 'github';
 
 				api.log('This is my user: ' + JSON.stringify(profile));
-
 				findOrCreateUser(profile, function(err, user, created) {
 					if (created) {
-						api.log("Hey, I just created a user!", user);
+						api.log("Hey, I just created a user!");
 					}
 					return done(null, user);
 				});
@@ -97,7 +96,6 @@ module.exports = {
 				profile.email = profile.emails[0].value;
 
 				api.log('This is my user: ' + JSON.stringify(profile));
-
 				findOrCreateUser(profile, function(err, user, created) {
 					if (created) {
 						api.log("Hey, I just created a user!", user);
@@ -108,6 +106,7 @@ module.exports = {
 		));
 
 		passport.serializeUser(function (user, done) {
+			api.log("passport.serializeUser user: "+(user.id||user));
 			done(null, user);
 			return;
 			// Faking a connection object as the first argument for
@@ -119,7 +118,7 @@ module.exports = {
 		});
 
 		passport.deserializeUser(function (user, done) {
-			// api.log("passport.deserializeUser user: "+JSON.stringify(user));
+			api.log("passport.deserializeUser user: "+(user.id||user));
 
 			return findOrCreateUser(user, done);
 
