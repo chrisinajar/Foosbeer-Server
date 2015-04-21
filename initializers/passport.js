@@ -28,7 +28,7 @@ module.exports = {
 				return api.models.user.model.findOrCreate({
 					id: user.id,
 					uid: user.uid,
-					email: user.profile.emails[0].value,
+					email: user.email,
 					authType: user.authType,
 					profile: user
 				}, cb);
@@ -90,8 +90,8 @@ module.exports = {
 				enableProof: false
 			},
 			function(accessToken, refreshToken, profile, done) {
-				console.log("This runs, but somehow something still errors?", profile);
 				profile.authType = 'facebook';
+				profile.email = profile.emails[0].value;
 
 				findOrCreateUser(profile, function(err, user, created) {
 					if (created) {
