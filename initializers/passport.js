@@ -51,7 +51,7 @@ module.exports = {
 
 		var authenticationMiddleware = function(connection, actionTemplate, next) {
 			connection.session = connection.rawConnection.req.session;
-			connection.user = connection.session.passport.user;
+			connection.user = connection.rawConnection.req.user;
 
 			if (actionTemplate.authenticated === true) {
 				if (!connection.user) {
@@ -69,18 +69,18 @@ module.exports = {
 		passport.use('github', new GitHubStrategy({
 				clientID: GITHUB_CLIENT_ID,
 				clientSecret: GITHUB_CLIENT_SECRET,
-				callbackURL: "http://foos.beer/api/auth/github/callback"
+				callbackURL: "http://foos.beer:4387/api/auth/github/callback"
 			},
 			function(accessToken, refreshToken, profile, done) {
-
+				profile.email = profile.emails[0].value;
 				profile.authType = 'github';
 
 				api.log('This is my user: ' + JSON.stringify(profile));
 				findOrCreateUser(profile, function(err, user, created) {
 					if (created) {
-						api.log("Hey, I just created a user!");
+						api.log("Hey, I just created a user! " + JSON.stringify(profile));
 					}
-					return done(null, user);
+					return done(null, profile);
 				});
 			}
 		));
@@ -88,8 +88,8 @@ module.exports = {
 		passport.use('facebook', new FacebookStrategy({
 				clientID: FACEBOOK_APP_ID,
 				clientSecret: FACEBOOK_APP_SECRET,
-				callbackURL: "http://foos.beer/api/auth/facebook/callback",
-				enableProof: false
+				callbackURL: "http://foos.beer:4387/api/auth/facebook/callback",
+				enableProof: true
 			},
 			function(accessToken, refreshToken, profile, done) {
 				profile.authType = 'facebook';
@@ -98,18 +98,21 @@ module.exports = {
 				api.log('This is my user: ' + JSON.stringify(profile));
 				findOrCreateUser(profile, function(err, user, created) {
 					if (created) {
-						api.log("Hey, I just created a user!", user);
+						api.log("Hey, I just created a user!" +  JSON.stringify(user));
 					}
-					return done(null, user);
+					console.log(user.profile.err);
+					return done(null, user.profile);
 				});
 			}
 		));
 
 		passport.serializeUser(function (user, done) {
-			api.log("passport.serializeUser user: "+(user.id||user));
-			return findOrCreateUser(user, function(err, user) {
-				done(err, user.uid);
-			});
+			api.log("passport.serializeUser user: "+user.uid);
+			api.log("passport.serializeUser user: "+user);
+			// return findOrCreateUser(user, function(err, mongoUser) {
+				// api.log("Found this user: " + mongoUser.uid);
+				done(null, user.uid || user);
+			// });
 
 			// Faking a connection object as the first argument for
 			// the session's save method. In this case it only needs
@@ -122,7 +125,7 @@ module.exports = {
 		passport.deserializeUser(function (uid, done) {
 			api.log("passport.deserializeUser user: "+(uid));
 
-			api.mongodb.user.findOne({uid: uid}, function(err, user) {
+			api.models.user.model.findOne({uid: uid}, function(err, user) {
 				api.log("I found this user..." + JSON.stringify(user));
 				done(err, user);
 			});
@@ -149,19 +152,10 @@ module.exports = {
 			passport.authenticate('facebook', { scope: ['email'] })
 		);
 
-		app.connect.use('/api/auth/facebook/callback',
-			passport.authenticate('facebook')
-		);
-
 		app.connect.use('/api/auth/github',
 			passport.authenticate('github', { scope: ['user:email'] })
 		);
 
-		app.connect.use('/api/auth/github/callback',
-			passport.authenticate('github')
-		);
-
-	 
 		api.passport = passport;
 	 
 		next();

@@ -12,7 +12,8 @@ exports.auth_github = {
 	outputExample: {
 	},
 	run: function(api, connection, next) {
-		api.log(connection.params);
+		api.log(connection.user);
+		api.log(connection.session);
 		next(connection, true);
 		// passport.authorize('github', {
 		// 	failureRedirect: '/login'

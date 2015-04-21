@@ -31,6 +31,15 @@ app.connect.use(function(req, res, next) {
 	next();
 });
 
+app.connect.use('/api/logout', function(req, res, next) {
+	req.logout();
+	req.session.destroy();
+	// // res.status(200);
+	// res.write("{message:'You have been logged out.'}");
+	// res.end(next);
+	next();
+});
+
 
 app.connect.server = http.createServer(app.connect);
 
