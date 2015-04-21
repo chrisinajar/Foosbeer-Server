@@ -72,7 +72,10 @@ module.exports = {
 				callbackURL: "http://foos.beer/api/auth/github/callback"
 			},
 			function(accessToken, refreshToken, profile, done) {
+
 				profile.authType = 'github';
+
+				api.log('This is my user: ' + JSON.stringify(profile));
 
 				findOrCreateUser(profile, function(err, user, created) {
 					if (created) {
