@@ -3,10 +3,10 @@ exports.default = {
 		return {
 			
 			get: [{
-				path: '/auth/github',
+				path: '/auth/:type',
 				action: 'auth_github'
 			}, {
-				path: '/auth/github/callback',
+				path: '/auth/:type/callback',
 				action: 'auth_github'
 			}]
 			/* ---------------------
@@ -34,6 +34,6 @@ exports.default = {
 			
 			---------------------- */
 			
-		}
+		};
 	}
-}
+};

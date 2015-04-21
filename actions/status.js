@@ -36,6 +36,7 @@ exports.status = {
   },
 
   run: function(api, connection, next){
+    api.log("This is the user: " + JSON.stringify(connection.user));
     connection.response.id = api.id;
     connection.response.actionheroVersion = api.actionheroVersion;
     var now = new Date().getTime();

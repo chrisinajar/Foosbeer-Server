@@ -2,170 +2,126 @@ var app = require('../src/app');
 var _ = require('underscore');
 var url = require('url');
 var passport = require('passport');
+var mongoose = require('mongoose');
+
 var GitHubStrategy = require('passport-github2').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
 
 var GITHUB_CLIENT_ID = app.config.github.client_id;
 var GITHUB_CLIENT_SECRET = app.config.github.client_secret;
 
-var passport = require("passport");
-var util = require('util');
- 
+var FACEBOOK_APP_ID = app.config.facebook.client_id;
+var FACEBOOK_APP_SECRET = app.config.facebook.client_secret;
 
 module.exports = {
 
+	loadPriority:  800,
+	startPriority: 800,
+	stopPriority:  800,
+
 	initialize: function(api, next) {
-	 
-		var doBasicAuth = function (req, res, connection, next) {
-			passport.authenticate("local", {session: true},
-				function (err, user, info, extra) {
-					if (err) {
-						connection.error = err;
-						return next(connection, false);
-					}
-					if (!user) {
-						// api.log('Not Authenticated');
-						// Unauthorized
-						connection.rawConnection.responseHttpCode = 401;
-						return next(connection, false);
-					}
-					// api.log('user: '+JSON.stringify(user))
-					user.connection_id = connection.id;
-					connection.rawConnection.req.logIn(user, function () {
-						next(connection, true);
-					});
-				})(req, res);
-		};
-	 
-		// Set up session variables
-		var setupSession = function (connection, actionTemplate, next) {
-			// api.log("setupSession, connection.id: "+ connection.id);
-			connection.rawConnection.req.session = {passport: {user: connection.id}};
-			next(connection, true);
-		};
-		
-		// Init Passport and Passport's Session integration
-		// (adds Passport methods/properties to the request and response objects)
-		var usePassportMiddleware = function (connection, actionTemplate, next) {
-			passport.initialize()(connection.rawConnection.req, connection.rawConnection.res, function () {
-				passport.session()(connection.rawConnection.req, connection.rawConnection.res, function () {
-					next(connection, true);
-				});
+
+		function findOrCreateUser(user, cb) {
+			if (user.id) {
+				user.uid = (user.authType ? user.authType + ':' : '') + user.id;
+
+				return api.models.user.model.findOrCreate({
+					id: user.id,
+					uid: user.uid,
+					email: user.profile.emails[0].value,
+					authType: user.authType,
+					profile: user
+				}, cb);
+			}
+
+			console.log("Trying to load this thing...", user);
+
+			api.models.user.model.findOne({ uid : user }, function(err, user) {
+				api.log('Hello?');
+				if (!err && !user) {
+					console.log("Not found!");
+					cb("User not found");
+				}
+				console.log("This is what i got", err);
+				console.log(user);
+				cb(err, user);
 			});
-		};
 
+		}
 
-		var checkOAuthCallback = function(connection, actionTemplate, next) {
-			var path = url.parse(connection.rawConnection.req.url).pathname,
-				parts = path.split('/'),
-				type;
+		var authenticationMiddleware = function(connection, actionTemplate, next) {
+			connection.session = connection.rawConnection.req.session;
+			connection.user = connection.session.passport.user;
 
-			if (parts[0] === "") {
-				parts.shift();
-			}
-
-			if (parts.length < 3 && parts[0] !== "api" || parts[1] !== "auth") {
-				api.log(parts.length + " " + parts[0] + " " + parts[1]);
-				return next(connection, true);
-			}
-
-			_.extend(connection.rawConnection.req, {body:connection.params});
-			type = parts[2];
-
-			api.log("Received OAuth callback: " + type + " " + parts[3]);
-
-			if (parts[3] === 'callback') {
-				passport.authenticate(type, {
-					failureRedirect: '/login',
-					successRedirect: '/api/status'
-				})(connection.rawConnection.req, connection.rawConnection.res, function() {
-					api.log("Finished authorizing user!");
-					next(connection, true);
-				});
+			if (actionTemplate.authenticated === true) {
+				if (!connection.user) {
+					connection.error = "No access";
+				}
+				next(connection, true);
 			} else {
-				passport.authenticate('github')
-					(connection.rawConnection.req, connection.rawConnection.res, function() {
-						next(connection, true);
-					});
-			}
-		};
-
-		var authenticationMiddleware = function(connection, actionTemplate, next){
-
-			if(actionTemplate.authenticated === true){
-				_.extend(connection.rawConnection.req, {body:connection.params});
-
-				return passport.authenticate('github', {
-						session: true,
-						scope: ['user:email']
-					}, function (err, user, info, extra) {
-						api.log('Does this shit every run? user: '+JSON.stringify(user));
-						if (err) {
-							connection.error = err;
-							return next(connection, false);
-						}
-						if (!user) {
-							// api.log('Not Authenticated');
-							// Unauthorized
-							connection.rawConnection.responseHttpCode = 401;
-							return next(connection, false);
-						}
-						// api.log('user: '+JSON.stringify(user))
-						user.connection_id = connection.id;
-						connection.rawConnection.req.logIn(user, function () {
-							next(connection, true);
-						});
-					})(connection.rawConnection.req, connection.rawConnection.res);
-				
-			}else{
 				next(connection, true);
 			}
 		};
 	
-		api.actions.addPreProcessor(setupSession);
-		api.actions.addPreProcessor(usePassportMiddleware);
 		api.actions.addPreProcessor(authenticationMiddleware);
-		api.actions.addPreProcessor(checkOAuthCallback);
-	
+
+
 		passport.use('github', new GitHubStrategy({
 				clientID: GITHUB_CLIENT_ID,
 				clientSecret: GITHUB_CLIENT_SECRET,
-				callbackURL: "http://foos.beer/api/auth/github/callback"
+				callbackURL: "http://foos.beer:4387/api/auth/github/callback"
 			},
 			function(accessToken, refreshToken, profile, done) {
-				// asynchronous verification, for effect...
-				process.nextTick(function () {
-					// To keep the example simple, the user's GitHub profile is returned to
-					// represent the logged-in user.  In a typical application, you would want
-					// to associate the GitHub account with a user record in your database,
-					// and return that user instead.
-					//     User.findOrCreate({ githubId: profile.id }, function (err, user) {
-					api.log(profile);
-					return done(null, profile);
+				profile.authType = 'github';
+
+				findOrCreateUser(profile, function(err, user, created) {
+					if (created) {
+						api.log("Hey, I just created a user!", user);
+					}
+					return done(null, user);
 				});
 			}
 		));
-	
+
+		passport.use('facebook', new FacebookStrategy({
+				clientID: FACEBOOK_APP_ID,
+				clientSecret: FACEBOOK_APP_SECRET,
+				callbackURL: "http://foos.beer:4387/api/auth/facebook/callback",
+				enableProof: false
+			},
+			function(accessToken, refreshToken, profile, done) {
+				console.log("This runs, but somehow something still errors?", profile);
+				profile.authType = 'facebook';
+
+				findOrCreateUser(profile, function(err, user, created) {
+					if (created) {
+						api.log("Hey, I just created a user!", user);
+					}
+					return done(null, user);
+				});
+			}
+		));
+
 		passport.serializeUser(function (user, done) {
-			api.log("passport.serializeUser: "+JSON.stringify(user));
 			done(null, user);
 			return;
 			// Faking a connection object as the first argument for
 			// the session's save method. In this case it only needs
 			// the connection id so it's safe to leave sparse
-			// api.session.save({id:user.connection_id}, user, function (err) {
+			// console.session.save({id:user.connection_id}, user, function (err) {
 			// 	done(err, user.connection_id);
 			// });
 		});
-	 
-		passport.deserializeUser(function (connection_id, done) {
-			api.log("passport.deserializeUser connection_id: "+JSON.stringify(connection_id));
-			done(null, user);
-			return;
+
+		passport.deserializeUser(function (user, done) {
+			// api.log("passport.deserializeUser user: "+JSON.stringify(user));
+
+			return findOrCreateUser(user, done);
 
 			// Faking a connection object as the first argument for
 			// the session's load method. In this case it only needs
 			// the connection id so it's safe to leave sparse
-			// api.session.load({id:connection_id}, function (err, user) {
+			// console.session.load({id:connection_id}, function (err, user) {
 			// 	api.log("deserialized User: "+JSON.stringify(user));
 			// 	if (err) {
 			// 		api.log("ERROR: "+err);
@@ -173,6 +129,38 @@ module.exports = {
 			// 	done(null, user);
 			// });
 		});
+
+
+		app.connect.use(passport.initialize());
+		app.connect.use(passport.session());
+
+		app.connect.use('/api/auth/facebook',
+			passport.authenticate('facebook', { scope: 'email' })
+		);
+
+		app.connect.use('/api/auth/facebook/callback', 
+			(function(req, res, next) {
+				console.log('This is my session', req.session);
+				console.log(req.cookies);
+				next();
+			}),
+			passport.authenticate('facebook', {
+				successRedirect: '/',
+				failureRedirect: '/login'
+			}, 
+			function (err, user, info, extra) {
+				console.log(err);
+				console.log(user);
+				console.log(info);
+				console.log(extra);
+			}),
+			(function(req, res, next) {
+				console.log('This is my session', req.session);
+				console.log(req.sessionID);
+				next();
+			})
+		);
+
 	 
 		api.passport = passport;
 	 

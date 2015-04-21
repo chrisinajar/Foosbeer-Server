@@ -5,7 +5,6 @@ var app = require('./app');
 var config = require('../config');
 
 require('./plugins');
-require('./schema');
 
 app.start(config, function() {
 	console.log("Initialized!");
