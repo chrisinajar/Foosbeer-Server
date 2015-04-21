@@ -69,7 +69,7 @@ module.exports = {
 		passport.use('github', new GitHubStrategy({
 				clientID: GITHUB_CLIENT_ID,
 				clientSecret: GITHUB_CLIENT_SECRET,
-				callbackURL: "http://foos.beer:4387/api/auth/github/callback"
+				callbackURL: "http://foos.beer/api/auth/github/callback"
 			},
 			function(accessToken, refreshToken, profile, done) {
 				profile.authType = 'github';
@@ -86,7 +86,7 @@ module.exports = {
 		passport.use('facebook', new FacebookStrategy({
 				clientID: FACEBOOK_APP_ID,
 				clientSecret: FACEBOOK_APP_SECRET,
-				callbackURL: "http://foos.beer:4387/api/auth/facebook/callback",
+				callbackURL: "http://foos.beer/api/auth/facebook/callback",
 				enableProof: false
 			},
 			function(accessToken, refreshToken, profile, done) {
