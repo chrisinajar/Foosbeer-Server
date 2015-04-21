@@ -107,8 +107,10 @@ module.exports = {
 
 		passport.serializeUser(function (user, done) {
 			api.log("passport.serializeUser user: "+(user.id||user));
-			done(null, user);
-			return;
+			return findOrCreateUser(user, function(err, user) {
+				done(err, user.uid);
+			});
+
 			// Faking a connection object as the first argument for
 			// the session's save method. In this case it only needs
 			// the connection id so it's safe to leave sparse
@@ -117,10 +119,15 @@ module.exports = {
 			// });
 		});
 
-		passport.deserializeUser(function (user, done) {
-			api.log("passport.deserializeUser user: "+(user.id||user));
+		passport.deserializeUser(function (uid, done) {
+			api.log("passport.deserializeUser user: "+(uid));
 
-			return findOrCreateUser(user, done);
+			api.mongodb.user.findOne({uid: uid}, function(err, user) {
+				api.log("I found this user..." + JSON.stringify(user));
+				done(err, user);
+			});
+
+			// return findOrCreateUser(user, done);
 
 			// Faking a connection object as the first argument for
 			// the session's load method. In this case it only needs
