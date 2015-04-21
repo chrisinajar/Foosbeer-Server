@@ -143,7 +143,7 @@ module.exports = {
 		);
 
 		app.connect.use('/api/auth/github',
-			passport.authenticate('github', { scope: 'email' })
+			passport.authenticate('github', { scope: 'user:email' })
 		);
 
 		app.connect.use('/api/auth/github/callback',
