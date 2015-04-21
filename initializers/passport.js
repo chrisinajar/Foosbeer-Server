@@ -138,27 +138,16 @@ module.exports = {
 			passport.authenticate('facebook', { scope: 'email' })
 		);
 
-		app.connect.use('/api/auth/facebook/callback', 
-			(function(req, res, next) {
-				console.log('This is my session', req.session);
-				console.log(req.cookies);
-				next();
-			}),
-			passport.authenticate('facebook', {
-				successRedirect: '/',
-				failureRedirect: '/login'
-			}, 
-			function (err, user, info, extra) {
-				console.log(err);
-				console.log(user);
-				console.log(info);
-				console.log(extra);
-			}),
-			(function(req, res, next) {
-				console.log('This is my session', req.session);
-				console.log(req.sessionID);
-				next();
-			})
+		app.connect.use('/api/auth/facebook/callback',
+			passport.authenticate('facebook')
+		);
+
+		app.connect.use('/api/auth/github',
+			passport.authenticate('github', { scope: 'email' })
+		);
+
+		app.connect.use('/api/auth/github/callback',
+			passport.authenticate('github')
 		);
 
 	 
