@@ -33,8 +33,24 @@ module.exports = {
 
 				return api.models.user.model.findOne({
 					uid: user.uid
-				}, function(err, user) {
-					cb(err, user);
+				}, function(err, userModel) {
+					if (userModel) {
+						return cb(err, userModel);
+					}
+					userModel = new api.models.user.model({
+						id: user.id,
+						uid: user.uid,
+						email: user.email,
+						authType: user.authType,
+						profile: user
+					});
+					userModel.save(function(err) {
+						if (err) {
+							cb(err);
+						} else {
+							cb(null, userModel, true);
+						}
+					});
 				});
 			}
 
@@ -135,11 +151,16 @@ module.exports = {
 			api.log("passport.deserializeUser user: "+(uid));
 
 			api.models.user.model.findOne({uid: uid}, function(err, user) {
-				while (user.profile && user.profile.profile) {
-					user = user.profile;
+				if (user) {
+					while (user.profile && user.profile.profile) {
+						user = user.profile;
+					}
+					api.log("I found this user..." + JSON.stringify(user.profile));
+
+					done(err, user.profile);
+				} else {
+					done("Failed to find user!");
 				}
-				api.log("I found this user..." + JSON.stringify(user.profile));
-				done(err, user.profile);
 			});
 		});
 
