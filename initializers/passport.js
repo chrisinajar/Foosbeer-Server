@@ -19,7 +19,7 @@ var FACEBOOK_APP_SECRET = app.config.facebook.client_secret;
 
 var scopes = {
 	github: ["user:email"],
-	twitter: []
+	// twitter: []
 	// default is email
 	// facebook: "email"
 };
@@ -33,8 +33,8 @@ module.exports = {
 	initialize: function(api, next) {
 
 		function findOrCreateUser(user, cb) {
-			delete user._raw;
 			delete user._json;
+
 			if (user.id) {
 				user.uid = (user.authType ? user.authType + ':' : '') + user.id;
 
@@ -53,6 +53,8 @@ module.exports = {
 					});
 					userModel.save(function(err) {
 						if (err) {
+							api.log("ERROR!");
+							api.log(err);
 							cb(err);
 						} else {
 							cb(null, userModel, true);
@@ -103,7 +105,7 @@ module.exports = {
 						api.log(created);
 						api.log("Hey, I just created a user! " + JSON.stringify(profile));
 					}
-					return done(null, user);
+					return done(err, user);
 				});
 			}
 		));
@@ -122,22 +124,33 @@ module.exports = {
 					if (created) {
 						api.log("Hey, I just created a user!" +  JSON.stringify(user));
 					}
-					return done(null, user);
+					return done(err, user);
 				});
 			}
 		));
 		passport.use(new TwitterStrategy({
 				consumerKey: TWITTER_CONSUMER_KEY,
 				consumerSecret: TWITTER_CONSUMER_SECRET,
-				callbackURL: "http://foos.beer/FACEBOOK_APP_ID/auth/twitter/callback"
+				callbackURL: "http://foos.beer/api/auth/twitter/callback"
 			},
 			function(token, tokenSecret, profile, done) {
+				console.log(profile);
+
 				profile.authType = 'twitter';
-				profile.email = profile.emails[0].value;
+				if (profile.emails && profile.emails.length) {
+					profile.email = profile.emails[0].value;
+				} else {
+					profile.email = profile.screen_name + '@twitter.com';
+				}
+
 
 				findOrCreateUser(profile, function (err, user, created) {
 					if (created) {
 						api.log("Hey, I just created a user!" +  JSON.stringify(user));
+					}
+					if (err) {
+						api.log("There was an error trying to save this!!");
+						api.log(err);
 					}
 					return done(err, user);
 				});
