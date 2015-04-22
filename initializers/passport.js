@@ -13,6 +13,12 @@ var GITHUB_CLIENT_SECRET = app.config.github.client_secret;
 var FACEBOOK_APP_ID = app.config.facebook.client_id;
 var FACEBOOK_APP_SECRET = app.config.facebook.client_secret;
 
+var scopes = {
+	github: ["user:email"],
+	// default is email
+	// facebook: "email"
+};
+
 module.exports = {
 
 	loadPriority:  800,
@@ -25,25 +31,19 @@ module.exports = {
 			if (user.id) {
 				user.uid = (user.authType ? user.authType + ':' : '') + user.id;
 
-				return api.models.user.model.findOrCreate({
-					id: user.id,
-					uid: user.uid,
-					email: user.email,
-					authType: user.authType,
-					profile: user
-				}, cb);
+				return api.models.user.model.findOne({
+					uid: user.uid
+				}, function(err, user) {
+					cb(err, user);
+				});
 			}
 
-			console.log("Trying to load this thing...", user);
 
 			api.models.user.model.findOne({ uid : user }, function(err, user) {
 				api.log('Hello?');
 				if (!err && !user) {
-					console.log("Not found!");
 					cb("User not found");
 				}
-				console.log("This is what i got", err);
-				console.log(user);
 				cb(err, user);
 			});
 
@@ -78,6 +78,7 @@ module.exports = {
 				api.log('This is my user: ' + JSON.stringify(profile));
 				findOrCreateUser(profile, function(err, user, created) {
 					if (created) {
+						api.log(created);
 						api.log("Hey, I just created a user! " + JSON.stringify(profile));
 					}
 					return done(null, profile);
@@ -100,18 +101,26 @@ module.exports = {
 					if (created) {
 						api.log("Hey, I just created a user!" +  JSON.stringify(user));
 					}
-					console.log(user.profile.err);
-					return done(null, user.profile);
+					return done(null, profile);
 				});
 			}
 		));
 
 		passport.serializeUser(function (user, done) {
-			api.log("passport.serializeUser user: "+user.uid);
+			if (user && user.uid) {
+				api.log("passport.serializeUser user: "+user.uid);
+			}
 			api.log("passport.serializeUser user: "+user);
+
+			if (!user) {
+				done("No user passed in to serialize!");
+			} else {
+				done(null, user.uid || user);
+
+			}
 			// return findOrCreateUser(user, function(err, mongoUser) {
 				// api.log("Found this user: " + mongoUser.uid);
-				done(null, user.uid || user);
+				// done(null, user.uid || user);
 			// });
 
 			// Faking a connection object as the first argument for
@@ -126,35 +135,65 @@ module.exports = {
 			api.log("passport.deserializeUser user: "+(uid));
 
 			api.models.user.model.findOne({uid: uid}, function(err, user) {
-				api.log("I found this user..." + JSON.stringify(user));
-				done(err, user);
+				while (user.profile && user.profile.profile) {
+					user = user.profile;
+				}
+				api.log("I found this user..." + JSON.stringify(user.profile));
+				done(err, user.profile);
 			});
-
-			// return findOrCreateUser(user, done);
-
-			// Faking a connection object as the first argument for
-			// the session's load method. In this case it only needs
-			// the connection id so it's safe to leave sparse
-			// console.session.load({id:connection_id}, function (err, user) {
-			// 	api.log("deserialized User: "+JSON.stringify(user));
-			// 	if (err) {
-			// 		api.log("ERROR: "+err);
-			// 	}
-			// 	done(null, user);
-			// });
 		});
-
 
 		app.connect.use(passport.initialize());
 		app.connect.use(passport.session());
 
-		app.connect.use('/api/auth/facebook',
-			passport.authenticate('facebook', { scope: ['email'] })
-		);
+		app.connect.use('/api/auth/', function(req, res, next) {
+			// [ '', 'api', 'auth', 'github', 'callback' ]
+			var parts = req.path.split('/'),
+				isCallback = false,
+				type;
 
-		app.connect.use('/api/auth/github',
-			passport.authenticate('github', { scope: ['user:email'] })
-		);
+			// return next();
+
+			if (!parts[0].length) {
+				parts.shift();
+			}
+
+			type = parts.pop();
+
+			if (type === "test") {
+				return next();
+			}
+			if (type === "callback") {
+				isCallback = true;
+				type = parts.pop();
+			}
+
+			if (!isCallback) {
+				passport.authenticate(type, { session: true , scope: scopes[type] || 'email' })
+					(req, res, next);
+			} else {
+				passport.authenticate(type, {
+				}, function(err, user, info) {
+					req.login(user, function(err) {
+						if (err) {
+							api.log("Got an error creating the session: " + JSON.stringify(err));
+							next(err);
+						} else {
+							req.session.save(function(err) {
+								if (err) {
+									api.log("Got an error saving the session: " + JSON.stringify(err));
+									next(err);
+								} else {
+									res.redirect('/api/status');
+								}
+								// next();
+								// res.send(req.session);
+							});
+						}
+					});
+				})(req, res, next);
+			}
+		});
 
 		api.passport = passport;
 	 

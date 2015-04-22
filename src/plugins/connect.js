@@ -4,11 +4,14 @@ var app = require('../app');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
-var RedisStore = require('connect-redis')(session);
+var MongoStore = require('connect-mongo')(session);
 var redirect = require('connect-redirection');
 var url = require('url');
+var mongoose = require('mongoose');
 
-var server;
+var mongooseOptions = require('../../config/mongoose').default.mongoose();
+
+// var connection = mongoose.createConnection(mongooseOptions.connection_string);
 
 app.connect = connect();
 
@@ -17,27 +20,33 @@ app.connect.use(bodyParser.json());
 app.connect.use(bodyParser.urlencoded({extended: false}));
 app.connect.use(redirect());
 
+
 // app.connect.use(urlEncode);
 app.connect.use(session({
-	secret: 'i dont even get the point of this...',
-	store: new RedisStore(),
-	resave: false,
+	secret: 'top secret',
+	store: new MongoStore({
+			db: 'foosbeer-sessions'
+		}),
+	resave: true,
 	saveUninitialized: true
 }));
 
 app.connect.use(function(req, res, next) {
-	req.query = url.parse(req.url, true).query;
-	req.session.cookie = req.cookies;
+	var parsedURL = url.parse(req.url, true);
+
+	req.originalUrl = req.url;
+
+	req.query = parsedURL.query;
+	req.path = parsedURL.pathname;
+	req.protocol = parsedURL.protocol;
+
 	next();
 });
 
 app.connect.use('/api/logout', function(req, res, next) {
 	req.logout();
-	req.session.destroy();
-	// // res.status(200);
-	// res.write("{message:'You have been logged out.'}");
-	// res.end(next);
-	next();
+	req.session.destroy(next());
+	// });
 });
 
 
