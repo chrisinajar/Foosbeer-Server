@@ -29,6 +29,7 @@
     "passport": "^0.2.1",
     "passport-facebook": "^2.0.0",
     "passport-github2": "^0.1.9",
+    "passport-twitter": "^1.0.3",
     "pmx": "^0.3.7",
     "underscore": "^1.8.3"
   }
