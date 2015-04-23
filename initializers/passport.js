@@ -36,7 +36,7 @@ module.exports = {
 			connection.session = connection.rawConnection.req.session;
 			connection.user = connection.rawConnection.req.user;
 
-			if (actionTemplate.authenticated === true) {
+			if (actionTemplate.anonymous !== true) {
 				if (!connection.user) {
 					connection.error = "No access";
 				}
