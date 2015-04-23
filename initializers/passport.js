@@ -4,19 +4,6 @@ var url = require('url');
 var passport = require('passport');
 var mongoose = require('mongoose');
 
-var GitHubStrategy = require('passport-github2').Strategy;
-var FacebookStrategy = require('passport-facebook').Strategy;
-var TwitterStrategy = require('passport-twitter').Strategy;
-
-var GITHUB_CLIENT_ID = app.config.github.client_id;
-var GITHUB_CLIENT_SECRET = app.config.github.client_secret;
-
-var TWITTER_CONSUMER_KEY = app.config.twitter.client_id;
-var TWITTER_CONSUMER_SECRET = app.config.twitter.client_secret;
-
-var FACEBOOK_APP_ID = app.config.facebook.client_id;
-var FACEBOOK_APP_SECRET = app.config.facebook.client_secret;
-
 var scopes = {
 	github: ["user:email"],
 	// twitter: []
@@ -81,6 +68,17 @@ module.exports = {
 
 		app.connect.use(passport.initialize());
 		app.connect.use(passport.session());
+		app.connect.use(function(err, req, res, next) {
+			if (err) {
+				if (typeof err === "string") {
+					res.write('{error: 1, message: "' + err.replace(/"/g, '\\"') + '" }');
+				} else {
+					res.write(JSON.stringify(err));
+
+				}
+				res.end();
+			}
+		});
 
 		app.connect.use('/api/auth/', function(req, res, next) {
 			// [ '', 'api', 'auth', 'github', 'callback' ]

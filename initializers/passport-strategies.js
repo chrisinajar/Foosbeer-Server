@@ -24,7 +24,7 @@ module.exports = {
 
 	initialize: function(api, next) {
 		function findOrCreateUser(user, cb) {
-			delete user._json;
+			delete user._raw;
 
 			if (user.id) {
 				user.uid = (user.authType ? user.authType + ':' : '') + user.id;
@@ -38,6 +38,7 @@ module.exports = {
 					userModel = new api.models.user.model({
 						id: user.id,
 						uid: user.uid,
+						name: user.name,
 						email: user.email,
 						authType: user.authType,
 						profile: user
@@ -72,6 +73,7 @@ module.exports = {
 			},
 			function(accessToken, refreshToken, profile, done) {
 				profile.email = profile.emails[0].value;
+				profile.name = profile.displayName;
 				profile.authType = 'github';
 
 				findOrCreateUser(profile, function(err, user, created) {
@@ -92,6 +94,7 @@ module.exports = {
 			},
 			function(accessToken, refreshToken, profile, done) {
 				profile.authType = 'facebook';
+				profile.name = profile.displayName;
 				profile.email = profile.emails[0].value;
 
 				findOrCreateUser(profile, function(err, user, created) {
@@ -109,12 +112,13 @@ module.exports = {
 			},
 			function(token, tokenSecret, profile, done) {
 				console.log(profile);
-
+				profile.name = profile.displayName;
 				profile.authType = 'twitter';
+
 				if (profile.emails && profile.emails.length) {
 					profile.email = profile.emails[0].value;
 				} else {
-					profile.email = profile.screen_name + '@twitter.com';
+					profile.email = profile.username + '@twitter.com';
 				}
 
 
