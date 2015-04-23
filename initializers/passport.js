@@ -32,48 +32,6 @@ module.exports = {
 
 	initialize: function(api, next) {
 
-		function findOrCreateUser(user, cb) {
-			delete user._json;
-
-			if (user.id) {
-				user.uid = (user.authType ? user.authType + ':' : '') + user.id;
-
-				return api.models.user.model.findOne({
-					uid: user.uid
-				}, function(err, userModel) {
-					if (userModel) {
-						return cb(err, userModel);
-					}
-					userModel = new api.models.user.model({
-						id: user.id,
-						uid: user.uid,
-						email: user.email,
-						authType: user.authType,
-						profile: user
-					});
-					userModel.save(function(err) {
-						if (err) {
-							api.log("ERROR!");
-							api.log(err);
-							cb(err);
-						} else {
-							cb(null, userModel, true);
-						}
-					});
-				});
-			}
-
-
-			api.models.user.model.findOne({ uid : user }, function(err, user) {
-				api.log('Hello?');
-				if (!err && !user) {
-					cb("User not found");
-				}
-				cb(err, user);
-			});
-
-		}
-
 		var authenticationMiddleware = function(connection, actionTemplate, next) {
 			connection.session = connection.rawConnection.req.session;
 			connection.user = connection.rawConnection.req.user;
@@ -90,73 +48,6 @@ module.exports = {
 	
 		api.actions.addPreProcessor(authenticationMiddleware);
 
-
-		passport.use('github', new GitHubStrategy({
-				clientID: GITHUB_CLIENT_ID,
-				clientSecret: GITHUB_CLIENT_SECRET,
-				callbackURL: "http://foos.beer/api/auth/github/callback"
-			},
-			function(accessToken, refreshToken, profile, done) {
-				profile.email = profile.emails[0].value;
-				profile.authType = 'github';
-
-				findOrCreateUser(profile, function(err, user, created) {
-					if (created) {
-						api.log(created);
-						api.log("Hey, I just created a user! " + JSON.stringify(profile));
-					}
-					return done(err, user);
-				});
-			}
-		));
-
-		passport.use('facebook', new FacebookStrategy({
-				clientID: FACEBOOK_APP_ID,
-				clientSecret: FACEBOOK_APP_SECRET,
-				callbackURL: "http://foos.beer/api/auth/facebook/callback",
-				enableProof: true
-			},
-			function(accessToken, refreshToken, profile, done) {
-				profile.authType = 'facebook';
-				profile.email = profile.emails[0].value;
-
-				findOrCreateUser(profile, function(err, user, created) {
-					if (created) {
-						api.log("Hey, I just created a user!" +  JSON.stringify(user));
-					}
-					return done(err, user);
-				});
-			}
-		));
-		passport.use(new TwitterStrategy({
-				consumerKey: TWITTER_CONSUMER_KEY,
-				consumerSecret: TWITTER_CONSUMER_SECRET,
-				callbackURL: "http://foos.beer/api/auth/twitter/callback"
-			},
-			function(token, tokenSecret, profile, done) {
-				console.log(profile);
-
-				profile.authType = 'twitter';
-				if (profile.emails && profile.emails.length) {
-					profile.email = profile.emails[0].value;
-				} else {
-					profile.email = profile.screen_name + '@twitter.com';
-				}
-
-
-				findOrCreateUser(profile, function (err, user, created) {
-					if (created) {
-						api.log("Hey, I just created a user!" +  JSON.stringify(user));
-					}
-					if (err) {
-						api.log("There was an error trying to save this!!");
-						api.log(err);
-					}
-					return done(err, user);
-				});
-			}
-		));
-
 		passport.serializeUser(function (user, done) {
 			if (user && user.uid) {
 				api.log("passport.serializeUser user: "+user.uid);
@@ -169,17 +60,6 @@ module.exports = {
 				done(null, user.uid || user);
 
 			}
-			// return findOrCreateUser(user, function(err, mongoUser) {
-				// api.log("Found this user: " + mongoUser.uid);
-				// done(null, user.uid || user);
-			// });
-
-			// Faking a connection object as the first argument for
-			// the session's save method. In this case it only needs
-			// the connection id so it's safe to leave sparse
-			// console.session.save({id:user.connection_id}, user, function (err) {
-			// 	done(err, user.connection_id);
-			// });
 		});
 
 		passport.deserializeUser(function (uid, done) {
