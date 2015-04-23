@@ -1,5 +1,4 @@
 var mongoose = require('mongoose');
-var findOrCreate = require('mongoose-findorcreate');
 var Schema = mongoose.Schema;
 var Types = mongoose.Types;
 
@@ -15,8 +14,6 @@ var userSchema = mongoose.Schema({
 	email: 	{ type: String , required: true },
 	mmr: 	{ type: Number , default: 500 , required: true , min: 0 }
 });
-
-userSchema.plugin(findOrCreate);
 
 // userSchema.virtual('full_name').get(function () {
 // 	return this.first_name + ' ' + this.last_name;
