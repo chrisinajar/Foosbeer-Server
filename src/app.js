@@ -4,7 +4,7 @@ var actionhero = require("actionhero").actionheroPrototype;
 var http = require('http');
 
 var app = {
-
+	radio: require('backbone.radio'),
 	start: function(config, fn) {
 		// http.listen(4387);
 		app.actionhero = new actionhero();

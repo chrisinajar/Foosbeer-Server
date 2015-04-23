@@ -4,14 +4,35 @@ var config = require('../config');
 
 var fs = require('fs');
 
-
 module.exports = {
 
 	loadPriority:  200,
 	startPriority: 200,
 	stopPriority:  200,
 
+	applyHooks: function(api, name, schema) {
+		api.log("Applying hooks to this model: " + name);
+
+		schema.post('save', function(doc) {
+			api.radio.channel('mongoose').trigger('create:' + doc._id, doc);
+		});
+		schema.post('update', function(doc) {
+			api.radio.channel('mongoose').trigger('update:' + doc._id, doc);
+		});
+		schema.post('remove', function(doc) {
+			api.radio.channel('mongoose').trigger('remove:' + doc._id, doc);
+		});
+	},
+
 	initialize: function(api, next) {
+		var self = this;
+
+		mongoose.___model = mongoose.model;
+
+		mongoose.model = function(name, schema) {
+			self.applyHooks(api, name, schema);
+			return mongoose.___model(name, schema);
+		};
 		next();
 	},
 
