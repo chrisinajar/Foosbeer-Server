@@ -74,7 +74,6 @@ module.exports = {
 					res.write('{error: 1, message: "' + err.replace(/"/g, '\\"') + '" }');
 				} else {
 					res.write(JSON.stringify(err));
-
 				}
 				res.end();
 			}
