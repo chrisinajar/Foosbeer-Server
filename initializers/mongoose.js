@@ -14,13 +14,15 @@ module.exports = {
 		api.log("Applying hooks to this model: " + name);
 
 		schema.post('save', function(doc) {
-			api.radio.channel('mongoose').trigger('create:' + doc._id, doc);
+			console.log("This object got saved!! " + JSON.stringify(doc));
+			api.radio.channel('mongoose').trigger(name.toLowerCase() + ':create', doc);
 		});
 		schema.post('update', function(doc) {
-			api.radio.channel('mongoose').trigger('update:' + doc._id, doc);
+			console.log("This object got updated!! " + JSON.stringify(doc));
+			api.radio.channel('mongoose').trigger(name.toLowerCase() + ':update', doc);
 		});
 		schema.post('remove', function(doc) {
-			api.radio.channel('mongoose').trigger('remove:' + doc._id, doc);
+			api.radio.channel('mongoose').trigger(name.toLowerCase() + ':remove', doc);
 		});
 	},
 
