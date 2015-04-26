@@ -18,7 +18,7 @@ exports.logout = {
 		}
 		query.exec(function(err, users) {
 			connection.response.users = users;
-			next(connection, true);
+			next();
 		});
 	}
 };

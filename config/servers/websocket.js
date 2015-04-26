@@ -20,7 +20,7 @@ exports.default = {
         // Primus Server Options:
         server: {
           // authorization: null,
-          // pathname:      '/primus',
+          // pathname:      'api/primus',
           // parser:        'JSON',
           // transformer:   'websockets',
           // plugin:        {},
@@ -34,14 +34,14 @@ exports.default = {
 
         // Priumus Client Options:
         client: {
-          apiPath:             '/api', // the api base endpoint on your actionhero server
+          apiPath:             '/api/', // the api base endpoint on your actionhero server
           // reconnect:        {},
           // timeout:          10000,
           // ping:             25000,
           // pong:             10000,
           // strategy:         "online",
           // manual:           false,
-          // websockets:       true,
+          // websockets:       false,
           // network:          true,
           // transport:        {},
           // queueSize:        Infinity,

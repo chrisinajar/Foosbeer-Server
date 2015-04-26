@@ -42,13 +42,9 @@ exports.default = {
         bootAttempts: 1,
         // Settings for determining the id of an http(s) request (browser-fingerprint)
         fingerprintOptions : {
-          cookieKey: 'sessionID',
-          toSetCookie: true,
+          cookieKey: 'connect.sid',
+          toSetCookie: false,
           onlyStaticElements: false,
-          settings: {
-            path: '/',
-            expires: 3600000,
-          }
         },
         // Options to be applied to incoming file uploads.
         //  More options and details at https://github.com/felixge/node-formidable
@@ -62,8 +58,8 @@ exports.default = {
         padding: 2,
         // Options to configure metadata in responses
         metadataOptions: {
-          serverInformation: true,
-          requesterInformation: true
+          serverInformation: false,
+          requesterInformation: false
         },
         // When true, returnErrorCodes will modify the response header for http(s) clients if connection.error is not null.
         //  You can also set connection.rawConnection.responseHttpCode to specify a code per request.

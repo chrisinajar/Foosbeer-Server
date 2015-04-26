@@ -19,21 +19,65 @@ module.exports = {
 
 	initialize: function(api, next) {
 
-		var authenticationMiddleware = function(connection, actionTemplate, next) {
-			connection.session = connection.rawConnection.req.session;
-			connection.user = connection.rawConnection.req.user;
+		var authenticationMiddleware = {
+			name: 'passport auth',
+			global: true,
+			priority: 100,
 
-			if (actionTemplate.anonymous !== true) {
-				if (!connection.user) {
-					connection.error = "No access";
+			preProcessor: function(data, next) {
+				// connection, actionTemplate, next) {
+				// return next();
+				api.log("This is the preprocessor?");
+				console.log(data.connection);
+
+				var connection = data.connection,
+					actionTemplate = data.actionTemplate;
+
+				if (connection.type === 'web') {
+					connection.session = connection.rawConnection.req.session;
+					connection.user = connection.rawConnection.req.user;
+
+					if (connection.user && connection.user.connectionID !== connection.fingerprint) {
+						api.log("Storing new connection id." + connection.fingerprint);
+						connection.user.connectionID = connection.fingerprint;
+						connection.user.save(function(err, user) {
+							if (err) {
+								api.log("Failed to save back connection ID!");
+							}
+						})
+					}
+
+					if (actionTemplate.anonymous !== true) {
+						if (!connection.user) {
+							connection.error = "Login required";
+							return next("Login required");
+						}
+					}
+					return next();
+				} else if (connection.type === 'websocket') {
+					api.log("Looking up user...");
+					api.models.user.model.findOne({
+						connectionID: connection.fingerprint
+					}, function(err, user) {
+						if (err) {
+							api.log("There was an error!!" + JSON.stringify(err));
+							return next(err);
+						} else if (!user) {
+							api.log("Didn't find any user with this fingerprint..");
+							return next("Login required");
+						} else {
+							api.log("Logged in apparently? " + JSON.stringify(user));
+							return next();
+						}
+					});
+					return;
 				}
-				next(connection, true);
-			} else {
-				next(connection, true);
+
+				next("No auth?");
 			}
 		};
 	
-		api.actions.addPreProcessor(authenticationMiddleware);
+		api.actions.addMiddleware(authenticationMiddleware);
 
 		passport.serializeUser(function (user, done) {
 			if (user && user.uid) {
@@ -54,9 +98,6 @@ module.exports = {
 
 			api.models.user.model.findOne({uid: uid}, function(err, user) {
 				if (user) {
-					while (user.profile && user.profile.profile) {
-						user = user.profile;
-					}
 					api.log("I found this user..." + JSON.stringify(user.profile));
 
 					done(err, user);
@@ -67,6 +108,10 @@ module.exports = {
 		});
 
 		app.connect.use(passport.initialize());
+		app.connect.use(function(req, res, next) {
+			console.log(req.url);
+			next();
+		});
 		app.connect.use(passport.session());
 		app.connect.use(function(err, req, res, next) {
 			if (err) {
@@ -102,8 +147,13 @@ module.exports = {
 			}
 
 			if (!isCallback) {
-				passport.authenticate(type, { session: true , scope: scopes[type] || 'email' })
-					(req, res, next);
+				// not a callback, this is a require! lets store the callback url...
+				console.log("This is my callback url!!!", req.query.callback);
+				req.session.authCallback = req.query.callback;
+				req.session.save(function() {
+					passport.authenticate(type, { session: true , scope: scopes[type] || 'email' })
+						(req, res, next);
+				});
 			} else {
 				passport.authenticate(type, {
 				}, function(err, user, info) {
@@ -112,7 +162,7 @@ module.exports = {
 							api.log("Got an error creating the session: " + JSON.stringify(err));
 							next(err);
 						} else {
-							res.redirect('/api/status');
+							res.redirect(req.session.authCallback || '/');
 						}
 					});
 				})(req, res, next);

@@ -20,6 +20,6 @@ exports.logout = {
 	},
 	run: function(api, connection, next){
 		connection.response.message = "Your session has been destroyed.";
-		next(connection, true);
+		next();
 	}
 };

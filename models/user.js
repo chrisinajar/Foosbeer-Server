@@ -8,6 +8,8 @@ var userSchema = mongoose.Schema({
 	id: 	{ type: String , require: true },
 	authType: { type: String , required: true },
 
+	connectionID: { type: String },
+
 	profile: { type: Object },
 
 	name: 	{ type: String , default: 'Player Name' , required: true , max: 120 },
