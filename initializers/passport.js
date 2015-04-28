@@ -66,7 +66,7 @@ module.exports = {
 							api.log("Didn't find any user with this fingerprint..");
 							return next("Login required");
 						} else {
-							api.log("Logged in apparently? " + JSON.stringify(user));
+							connection.user = user;
 							return next();
 						}
 					});
@@ -80,28 +80,30 @@ module.exports = {
 		api.actions.addMiddleware(authenticationMiddleware);
 
 		passport.serializeUser(function (user, done) {
-			if (user && user.uid) {
-				api.log("passport.serializeUser user: "+user.uid);
+			if (user && user.id) {
+				api.log("passport.serializeUser user: "+user.id);
 			}
 			api.log("passport.serializeUser user: "+user);
 
 			if (!user) {
 				done("No user passed in to serialize!");
 			} else {
-				done(null, user.uid || user);
+				done(null, user.id || user);
 
 			}
 		});
 
-		passport.deserializeUser(function (uid, done) {
-			api.log("passport.deserializeUser user: "+(uid));
+		passport.deserializeUser(function (id, done) {
+			api.log("passport.deserializeUser user: "+(id));
 
-			api.models.user.model.findOne({uid: uid}, function(err, user) {
+			api.models.user.model.findOne({id: id}, function(err, user) {
+				api.log("This is my result: " + err + ", " + user);
 				if (user) {
 					api.log("I found this user..." + JSON.stringify(user.profile));
 
 					done(err, user);
 				} else {
+					api.log("Error! no user called that...");
 					done("Failed to find user!");
 				}
 			});
@@ -116,12 +118,14 @@ module.exports = {
 		app.connect.use(function(err, req, res, next) {
 			if (err) {
 				if (typeof err === "string") {
-					res.write('{error: 1, message: "' + err.replace(/"/g, '\\"') + '" }');
+					res.write('{error: 911, message: "Error in connect: ' + err.replace(/"/g, '\\"') + '" }');
+					req.session.destroy();
 				} else {
 					res.write(JSON.stringify(err));
 				}
-				res.end();
+				return res.end();
 			}
+			next(err);
 		});
 
 		app.connect.use('/api/auth/', function(req, res, next) {

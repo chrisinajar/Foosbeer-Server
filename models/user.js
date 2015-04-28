@@ -3,9 +3,9 @@ var Schema = mongoose.Schema;
 var Types = mongoose.Types;
 
 var userSchema = mongoose.Schema({
-	uid: 	{ type: String , id: true, required: true },
+	id: 	{ type: String , id: true, required: true },
 
-	id: 	{ type: String , require: true },
+	authId: 	{ type: String , require: true },
 	authType: { type: String , required: true },
 
 	connectionID: { type: String },

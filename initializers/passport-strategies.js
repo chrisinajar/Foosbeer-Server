@@ -30,17 +30,19 @@ module.exports = {
 				user.uid = (user.authType ? user.authType + ':' : '') + user.id;
 
 				return api.models.user.model.findOne({
-					uid: user.uid
+					id: user.uid
 				}, function(err, userModel) {
 					if (userModel) {
 						return cb(err, userModel);
 					}
 					userModel = new api.models.user.model({
-						id: user.id,
-						uid: user.uid,
+						id: user.uid,
+						
+						authType: user.authType,
+						authId: user.id,
+
 						name: user.name,
 						email: user.email,
-						authType: user.authType,
 						profile: user
 					});
 					userModel.save(function(err) {
@@ -56,7 +58,7 @@ module.exports = {
 			}
 
 
-			api.models.user.model.findOne({ uid : user }, function(err, user) {
+			api.models.user.model.findOne({ id : user }, function(err, user) {
 				api.log('Hello?');
 				if (!err && !user) {
 					cb("User not found");

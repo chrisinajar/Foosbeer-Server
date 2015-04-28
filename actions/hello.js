@@ -5,9 +5,10 @@ exports.hello = {
 	outputExample:{
 	},
 
-	run: function(api, connection, next) {
-		connection.response.success = true;
-		connection.response.user = connection.user;
+	run: function(api, data, next) {
+		var connection = data.connection;
+		data.response.success = true;
+		data.response.user = connection.user;
 		next();
 	}
 };
