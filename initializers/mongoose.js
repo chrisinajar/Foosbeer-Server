@@ -35,6 +35,11 @@ module.exports = {
 			self.applyHooks(api, name, schema);
 			return mongoose.___model(name, schema);
 		};
+
+		String.prototype.toObjectId = function() {
+			return new mongoose.Types.ObjectId(this.toString());
+		};
+
 		next();
 	},
 
