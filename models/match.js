@@ -4,9 +4,10 @@ var Types = mongoose.Types;
 
 var matchSchema = mongoose.Schema({
 	players: [{
-		position: 	{ type: String , enum: [ 'defense', 'offense', 'mixed' ] , required: true },
 		player: 	{ type: Schema.Types.ObjectId , required: true },
 		mmr: 		{ type: Number , required: true },
+		
+		position: 	{ type: String , enum: [ 'defense', 'offense', 'mixed' ] , required: true },
 		team: 		{ type: Number , min: 0 , max: 1 },
 		winner: 	{ type: Number , min: 0 , max: 1 }
 	}],

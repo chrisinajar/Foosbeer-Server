@@ -39,9 +39,7 @@ exports.logout = {
 			checkFinish();
 		});
 
-		api.models.match.model.findOne({
-			_id: connection.user.currentMatch
-		}, function(err, match) {
+		connection.user.getMatch(function(err, match) {
 			if (err) {
 				data.response.error = 1;
 				data.response.message = ""+err;

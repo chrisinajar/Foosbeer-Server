@@ -1,4 +1,4 @@
-exports.logout = {
+exports.matchCreate = {
 	name: 'matchCreate',
 	description: 'Create a new match between a set of players',
 
@@ -17,6 +17,8 @@ exports.logout = {
 		}
 		// we're good, lets start the match!
 		var myMatch = new api.models.match.model({
+			type: '2v2',
+
 			players: [{
 				player: connection.user,
 				team: null,

@@ -25,11 +25,6 @@ module.exports = {
 			priority: 100,
 
 			preProcessor: function(data, next) {
-				// connection, actionTemplate, next) {
-				// return next();
-				api.log("This is the preprocessor?");
-				console.log(data.connection);
-
 				var connection = data.connection,
 					actionTemplate = data.actionTemplate;
 
