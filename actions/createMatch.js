@@ -19,7 +19,7 @@ exports.logout = {
 		var myMatch = new api.models.match.model({
 			players: [{
 				player: connection.user,
-				team: 0,
+				team: null,
 				position: 'mixed',
 				mmr: connection.user.mmr
 			}]
