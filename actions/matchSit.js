@@ -23,6 +23,8 @@ exports.matchSit = {
 
 		// get the match real quick..
 		connection.user.getMatch(function(err, match) {
+			var found = false;
+
 			if (err) {
 				data.response.error = 1;
 				data.response.message = "" + err;
@@ -37,19 +39,47 @@ exports.matchSit = {
 				return next();
 			}
 
-			match.players = _(match.players).map(function(player) {
-				console.log(player.player , connection.user._id);
-				console.log(player.player instanceof require('mongoose').Types.ObjectId);
-				console.log(connection.user._id instanceof require('mongoose').Types.ObjectId);
-				if (player.player.toString() === connection.user._id.toString()) {
-					player.position = data.params.position;
-					player.team = data.params.team;
-					player.winner = data.params.winner;
-				}
-			});
+			api.log(match.players.length);
+			api.log(match.toJSON().players);
+
+			match.players = _(match.players).chain()
+				.filter(function(player) {
+					return !!player;
+				})
+				.map(function(player) {
+					if (player.player.toString() === connection.user._id.toString()) {
+						found = true;
+						player.position = data.params.position;
+						player.team = data.params.team;
+						player.winner = data.params.winner;
+
+						player.player = connection.user._id;
+						player.mmr = connection.user.mmr;
+					}
+					return player;
+				})
+				.value();
+
+			if (!found) {
+				api.log("Player not found in match array, pushing");
+				api.log(connection.user._id);
+				match.players.push({
+					position: data.params.position,
+					team: data.params.team,
+					winner: data.params.winner,
+
+					player: connection.user._id,
+					mmr: connection.user.mmr
+				});
+			}
+
+			api.log(match.players.length);
+			api.log(match.toJSON().players);
 
 			match.save(function(err, match) {
 				if (err) {
+					api.log(""+err);
+					api.log(err);
 					data.response.error = 1;
 					data.response.message = "" + err;
 					return next();
