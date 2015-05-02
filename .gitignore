@@ -27,3 +27,5 @@ build/Release
 node_modules
 process.json
 config.json
+
+ecosystem.json*
