@@ -11,13 +11,13 @@ exports.logout = {
 			mmr: 9001
 		}]
 	},
-	run: function(api, connection, next) {
+	run: function(api, data, next) {
 		var query = api.models.user.model.find();
-		if (connection.params.delete) {
+		if (data.params.delete) {
 			query.remove();
 		}
 		query.exec(function(err, users) {
-			connection.response.users = users;
+			data.response.users = users;
 			next();
 		});
 	}

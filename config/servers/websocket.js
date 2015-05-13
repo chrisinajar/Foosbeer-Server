@@ -22,7 +22,7 @@ exports.default = {
           // authorization: null,
           // pathname:      'api/primus',
           // parser:        'JSON',
-          // transformer:   'websockets',
+          transformer:   'engine.io',
           // plugin:        {},
           // timeout:       35000,
           // origins:       '*',
