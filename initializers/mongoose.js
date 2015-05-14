@@ -15,6 +15,11 @@ module.exports = {
 
 		schema.post('save', function(doc) {
 			console.log("This object got saved!! " + JSON.stringify(doc));
+			// api.chatRoom.exists(doc._id.toString(), function(err, room) {
+			// 	if (room) {
+			// 		console.log("THIS ROOM NEEDS UPDATING!");
+			// 	}
+			// });
 			api.radio.channel('mongoose').trigger(name.toLowerCase() + ':create', doc);
 		});
 		schema.post('update', function(doc) {
@@ -33,6 +38,10 @@ module.exports = {
 
 		mongoose.model = function(name, schema) {
 			self.applyHooks(api, name, schema);
+			api.chatRoom.add(name.toLowerCase(), function() {
+				console.log("I tried to make a room called", name);
+				console.log(arguments);
+			});
 			return mongoose.___model(name, schema);
 		};
 

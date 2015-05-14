@@ -1,14 +1,12 @@
 exports.logout = {
 	name: 'users',
-	description: 'Lists all users currently in the system',
+	description: 'Lists all matches in a given state, defaults to open',
 
 	inputs: {
-		'delete': {}
+		state: {}
 	},
 	outputExample: {
-		users: [{
-			name: "Sam Bush",
-			mmr: 9001
+		matches: [{
 		}]
 	},
 	run: function(api, data, next) {

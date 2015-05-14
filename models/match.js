@@ -7,14 +7,15 @@ var matchSchema = mongoose.Schema({
 		player: 	{ type: Schema.Types.ObjectId , required: true },
 		mmr: 		{ type: Number , required: true },
 		
-		position: 	{ type: String , enum: [ 'defense', 'offense', 'mixed' ] , required: true },
+		position: 	{ type: String , enum: [ 'defense', 'offense', 'mixed', 'standing' ] , required: true },
 		team: 		{ type: Number , min: 0 , max: 1 },
 		winner: 	{ type: Number , min: 0 , max: 1 }
 	}],
 
 	type: 		{ type: String , enum: [ '1v1', '2v2', 'foosbeer' ] },
 
-	winner: 	{ type: Number , min: 0 , max: 1 }
+	winner: 	{ type: Number , min: 0 , max: 1 },
+	state: 		{ type: String , enum: [ 'done', 'open', 'active' ] , default: 'open' }
 });
 
 // matchSchema.virtual('full_name').get(function () {
