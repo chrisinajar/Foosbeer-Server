@@ -39,6 +39,7 @@ exports.matchFinish = {
 			}
 
 			// todo: stuff!
+			match.processScores(data.params.scoreOne, data.params.scoreTwo);
 			match.save(function(err, match) {
 				if (err) {
 					api.log(""+err);
