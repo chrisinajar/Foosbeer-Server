@@ -33,12 +33,6 @@ exports.logout = {
 			}
 		}
 
-		connection.user.currentMatch = null;
-		connection.user.save(function(err, user) {
-			userSaveError = err;
-			checkFinish();
-		});
-
 		connection.user.getMatch(function(err, match) {
 			if (err) {
 				data.response.error = 1;
@@ -54,14 +48,21 @@ exports.logout = {
 					matchSaveError = err;
 					checkFinish();
 				});
+			} else {
+				match.players = _(match.players).filter(function(player) {
+					return player.player._id !== connection.user._id;
+				});
+				match.save(function(err, user) {
+					matchSaveError = err;
+					checkFinish();
+				});
 			}
-			match.players = _(match.players).filter(function(player) {
-				return player.player._id !== connection.user._id;
-			});
-			match.save(function(err, user) {
-				matchSaveError = err;
-				checkFinish();
-			});
+		});
+		
+		connection.user.currentMatch = null;
+		connection.user.save(function(err, user) {
+			userSaveError = err;
+			checkFinish();
 		});
 
 	}
